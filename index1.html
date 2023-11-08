@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<head>
+    <link rel="icon" href="./icons8-pencil-50.png" type="image/x-icon">     
+    <title>SW_VectorEditor</title>
+    <script src="main.js"></script>
+    <link rel="stylesheet" href="main.css" type="text/css">
+    <script src="http://code.jquery.com/jquery.min.js"></script>
+</head>
+
+<body>
+    <div class="SW_id">SW Project - Kim Woo-chan, Hong Ji-hwan </div><hr>
+    <div class="props">
+        <div id="pallet">PALLET</div><hr> TEXT <br>
+        <input type="text" id="textin" style="display: none;">
+        <button id="text">Text</button>
+        <br><br> DIAGRAM <br>
+        <button onclick="swTool('circle')" id="circle">Circle</button><br>
+        <button onclick="swTool('rect')" id="rect">Rectangle</button> <br>
+        <button onclick="swTool('line')" id="line">Line</button><br>Color
+        <input type="color" id="color"><br>Outline
+        <input type="color" id="stroke"><br>Outline Width
+        <input type="number" id="stSize" step="1" min="0" max="800" value="2" />px
+        <button onclick="swTool('fill')" id="fill">Change color</button><br><br>EXPORT<br>
+        <button id="export">Export SVG</button> <br>
+
+        <details style="display:none;"></details>
+        <details style="display:none;">
+            <summary>Properties</summary>
+            <details style="display:inline;">
+                <summary style="display:inline;">Text</summary>
+                <br>Text</details><br>
+                Y <input type="text" id="y">X <input type="text" id="x"><br>
+            <details style="display:inline;"><summary style="display:inline;">Rectangle</summary><br>
+                width <input type="text" id="width"><br>
+                height <input type="text" id="height"></details> 
+            <details style="display:inline;">
+                <summary style="display:inline;">Circle</summary> <br>
+                radius <input type="text" id="r">
+            </details>
+        </details>
+    </div>
+    
+    <div class="opt" style="display: none;">
+        <a draggable="true" class="dragout" ondragend="document.querySelector('.opt').style.display='none';" data-downloadurl="image/xml+svg:exported.svg:data://image/xml+svg;base64,">drag this out to download (Chrome)</a><br>
+        <textarea class="optText" onchange="document.querySelector('.opt').style.display = 'none';"></textarea><br>
+    </div>
+    <div id="canvasWrap">
+        <svg onmousedown="click_in(event)" onmouseup="click_out(event); createObject(this); " id="canvas" xmlns="http://www.w3.org/2000/svg" version="1.1">
+   </svg></div><br>
+</body>
+
+

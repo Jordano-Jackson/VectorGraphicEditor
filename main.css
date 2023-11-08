@@ -1,0 +1,77 @@
+.SW_id {
+    text-align: center;
+    font-family:'Times New Roman', Times, serif;
+    padding-top: 5px;
+    padding-bottom: 10px;
+    font-size: 25px;
+}
+
+#pallet {
+    text-align: center;
+    font-weight: 300;
+    font-size: 20px;
+}
+
+.props {
+    background-color: rgb(200, 184, 116);
+    padding: 10px;
+    margin-left: 10px;
+    margin-right: 20px;
+    font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    font-size: 17px;
+    height: 590px;
+    width: 140px;
+    float: left;
+}
+
+.props button {
+    background-color: #000000;
+    border: 1px solid #000000;
+    color: #fff;
+    font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-size: 15px;
+    margin: 5px;
+    cursor: pointer;
+}
+
+.opt {
+    position: fixed;
+    margin: 16px;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+}
+.optText:empty {
+    display:none;
+}
+
+#canvas {
+    border: 1px solid grey;
+    float: left;
+    cursor: crosshair;
+    width: 1200px;
+    height: 650px;
+}
+
+.dragout {
+    border: 1px solid black;
+    background-color: dark-grey;
+}
+
+body {
+    font-family: Arial;
+}
+
+#canvasWrap svg circle {
+    cursor: pointer;
+}
+#canvasWrap svg rect {
+    cursor: pointer;
+}
+#canvasWrap svg text {
+    cursor: pointer;
+}
+#canvasWrap svg line {
+    cursor: pointer;
+}
