@@ -19,7 +19,7 @@
     margin-right: 20px;
     font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
     font-size: 17px;
-    height: 590px;
+    height: 650px;
     width: 140px;
     float: left;
 }
@@ -50,7 +50,7 @@
     border: 1px solid grey;
     float: left;
     cursor: crosshair;
-    width: 1200px;
+    width: 85%;
     height: 650px;
 }
 
@@ -61,6 +61,10 @@
 
 body {
     font-family: Arial;
+}
+
+body summary {
+    cursor: pointer;
 }
 
 #canvasWrap svg circle {
