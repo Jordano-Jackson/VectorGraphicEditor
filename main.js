@@ -1,5 +1,6 @@
 //canvasWrap id를 갖는 html div에서 호출함. 현재 선택된 그리기 도구(tool)에 따라 서로 다른 함수(createRect, createCircle, createText, createLine)를 호출합니다.
 var elementCounter = 1; // Element IDs 초기화
+var selectedElement = null;
 
 function createObject(obj){
     if (tool == 'fill') 
@@ -109,6 +110,8 @@ function click_out(event){
     document.querySelector("#x").value = pos_x1;
     document.querySelector("#height").value = pos_y2;
     document.querySelector("#width").value = pos_x2;
+} else if (tool == "select") {
+
 }
 }
 //Element의 색상을 채우는 함수로, onmousedown 이벤트에서 호출되며 주로 createObejcet에서 생성된다.
@@ -127,8 +130,3 @@ function swTool(tooln) {
     }
 }
 
-function selectObject(obj) {
-    if (tool == 'select') {
-    obj.style.fill = document.querySelector('#color').value;
-    obj.style.stroke = document.querySelector('#stroke').value;
-}}
