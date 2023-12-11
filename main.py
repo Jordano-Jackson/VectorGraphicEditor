@@ -33,11 +33,14 @@ class RectangleObject(GraphicObject):
         self.type = 'Rectangle'
         self.x = x
         self.y = y
-        self.rect_id = self.canvas.create_rectangle(x, y, x + width, y + height, fill=color, outline=color, tags="graphic_object")
+        self.width = width
+        self.height = height
+        self.color = color
         self.id = self.generate_obj_id()
+        self.draw()
 
     def draw(self):
-        pass  # No additional drawing logic for a basic rectangle
+        self.rect_id = self.canvas.create_rectangle(self.x, self.y, self.x + self.width, self.y + self.height, fill=self.color, outline=self.color, tags="graphic_object")
 
     def move(self, dx, dy):
         self.canvas.move(self.rect_id, dx, dy)
@@ -67,7 +70,7 @@ class VectorGraphicEditor:
         self.start_x = None
         self.start_y = None
         self.current_object = None
-        self.selected_object = None
+        self.selected_objects = []
 
         self.color='black'
 
@@ -87,6 +90,9 @@ class VectorGraphicEditor:
 
         select_button = tk.Button(self.bottom_frame, text="Select", command=lambda: self.set_mode("Select"))
         select_button.pack(side=tk.LEFT)
+
+        multiselect_button = tk.Button(self.bottom_frame, text="Multiselect", command=lambda: self.set_mode("Select"))
+        multiselect_button.pack(side=tk.LEFT)
 
         # Mode label at the bottom-right
         self.mode_label = tk.Label(self.bottom_frame, text=f"Mode: {self.mode}", bd=1, relief=tk.SUNKEN, anchor=tk.W)
@@ -172,7 +178,7 @@ class VectorGraphicEditor:
     def select_object(self, event=None):
         self.mode = 'Select'
         x, y = event.x, event.y
-        self.selected_object = self.find_closest(x, y)
+        self.selected_objects = [self.find_closest(x, y)]
         self.update_select_object_frame()
 
     def find_closest(self, x, y):
@@ -194,8 +200,7 @@ class VectorGraphicEditor:
         self.mode_label.config(text=f"Mode: {self.mode}")
 
     def update_select_object_frame(self):
-        self.select_object_frame.config(text=f"Selected Object: \n{self.selected_object.get_obj_id()}")
-
+        self.select_object_frame.config(text=f"Selected Object:\n" + "\n".join([obj.get_obj_id() for obj in self.selected_objects]))
 
 if __name__ == "__main__":
     root = tk.Tk()
