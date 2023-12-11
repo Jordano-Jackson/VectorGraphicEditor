@@ -1,8 +1,16 @@
 import tkinter as tk
 from abc import ABC, abstractmethod
 from tkinter import colorchooser
+import math
 
 class GraphicObject(ABC):
+    object_count = 0 # Class-level counter for generating unique names
+
+    @classmethod
+    def generate_obj_id(cls):
+        cls.object_count += 1
+        return f"{cls.__name__}{cls.object_count:03d}"
+
     @abstractmethod
     def draw(self):
         pass
@@ -11,10 +19,22 @@ class GraphicObject(ABC):
     def move(self, dx, dy):
         pass
 
+    def get_pos(self):
+        return getattr(self, 'x', 0), getattr(self, 'y', 0)
+    
+    def get_obj_id(self):
+        return getattr(self, 'id', 0)
+
+
 class RectangleObject(GraphicObject):
+
     def __init__(self, canvas, x, y, width, height, color):
         self.canvas = canvas
+        self.type = 'Rectangle'
+        self.x = x
+        self.y = y
         self.rect_id = self.canvas.create_rectangle(x, y, x + width, y + height, fill=color, outline=color, tags="graphic_object")
+        self.id = self.generate_obj_id()
 
     def draw(self):
         pass  # No additional drawing logic for a basic rectangle
@@ -25,6 +45,8 @@ class RectangleObject(GraphicObject):
 class EllipseObject(GraphicObject):
     def __init__(self, canvas, x, y, width, height, color):
         self.canvas = canvas
+        self.x = x
+        self.y = y
         self.ellipse_id = self.canvas.create_oval(x, y, x + width, y + height, fill=color, tags="graphic_object")
 
     def draw(self):
@@ -38,25 +60,54 @@ class VectorGraphicEditor:
         self.root = root
         self.root.title("Vector Graphic Editor")
 
-        self.canvas = tk.Canvas(root, bg="white", width=800, height=600)
-        self.canvas.pack(expand=tk.YES, fill=tk.BOTH)
+        #self.canvas = tk.Canvas(root, bg="white", width=800, height=600)
+        #self.canvas.pack(expand=tk.YES, fill=tk.BOTH)
 
-        self.drawing_mode = "rectangle"  # Initial drawing mode
+        self.mode = "rectangle"  # Initial mode
         self.start_x = None
         self.start_y = None
         self.current_object = None
+        self.selected_object = None
 
         self.color='black'
 
-        rectangle_button = tk.Button(root, text="Rectangle Mode", command=lambda: self.set_drawing_mode("rectangle"))
+        # Create a Frame as a container for the bottom buttons
+        self.bottom_frame = tk.Frame(root)
+        self.bottom_frame.pack(side=tk.BOTTOM, fill=tk.X)
+
+        # Mode buttons
+        rectangle_button = tk.Button(self.bottom_frame, text="Rectangle Mode", command=lambda: self.set_mode("rectangle"))
         rectangle_button.pack(side=tk.LEFT)
 
-
-        ellipse_button = tk.Button(root, text="Ellipse Mode", command=lambda: self.set_drawing_mode("ellipse"))
+        ellipse_button = tk.Button(self.bottom_frame, text="Ellipse Mode", command=lambda: self.set_mode("ellipse"))
         ellipse_button.pack(side=tk.LEFT)
 
-        rectangle_color_button = tk.Button(root, text="Color", command=self.choose_color)
+        rectangle_color_button = tk.Button(self.bottom_frame, text="Color", command=self.choose_color)
         rectangle_color_button.pack(side=tk.LEFT)
+
+        select_button = tk.Button(self.bottom_frame, text="Select", command=lambda: self.set_mode("Select"))
+        select_button.pack(side=tk.LEFT)
+
+        # Mode label at the bottom-right
+        self.mode_label = tk.Label(self.bottom_frame, text=f"Mode: {self.mode}", bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        self.mode_label.pack(side=tk.RIGHT, fill=tk.X)
+
+        # Create a Frame as a container for the right column
+        self.right_column_frame = tk.Frame(root, bg="lightgray", relief=tk.SOLID)
+        self.right_column_frame.pack(side=tk.RIGHT, fill=tk.Y)
+
+        # Mode label at the bottom-right
+        spacer = tk.Frame(self.right_column_frame, height=80, bg='lightgray')
+        spacer.pack(side=tk.TOP, fill=tk.X)
+
+        self.select_object_frame = tk.Label(self.right_column_frame, text=f"Selected Object: \nNone", bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        self.select_object_frame.pack(side=tk.TOP, fill=tk.X)
+
+
+        # Canvas to represent the drawing area
+        self.canvas = tk.Canvas(root, bg="white", width=800, height=600)
+        self.canvas.pack(expand=tk.YES, fill=tk.BOTH)
+
 
         self.objects = []  # List to store drawn objects
 
@@ -64,8 +115,7 @@ class VectorGraphicEditor:
         self.canvas.bind("<B1-Motion>", self.on_drag)
         self.canvas.bind("<ButtonRelease-1>", self.on_release)
 
-
-    def draw_object_drag(self, event, complete=False):
+    def draw_object_drag(self, event):
         cur_x = self.canvas.canvasx(event.x)
         cur_y = self.canvas.canvasy(event.y)
 
@@ -85,28 +135,29 @@ class VectorGraphicEditor:
             self.canvas.delete(self.current_object)
         
         # Draw an ellipse, rectangle, or line based on the starting and current points
-        if self.drawing_mode == 'rectangle' :
+        if self.mode == 'rectangle' :
             self.current_object = self.create_rectangle(
                 self.start_x, self.start_y, cur_x, cur_y
             )
-        print(self.objects)
-
-
 
     def on_press(self, event):
         self.start_x = self.canvas.canvasx(event.x)
         self.start_y = self.canvas.canvasy(event.y)
+
+        if self.mode == 'Select':
+            self.select_object(event)
     
     def on_drag(self, event):
-        self.draw_object_drag(event)
+        if self.mode == 'rectangle' or self.mode == 'ellipse':
+            self.draw_object_drag(event)
 
     def on_release(self, event):
         self.draw_object_release(event)
 
-    def set_drawing_mode(self, mode):
-        self.drawing_mode = mode
+    def set_mode(self, mode):
+        self.mode = mode
+        self.update_mode_label()
     
-
     def create_rectangle(self, start_x, start_y, cur_x, cur_y):
         rect = RectangleObject(self.canvas,start_x, start_y, cur_x-start_x, cur_y-start_y, self.color)
         self.objects.append(rect)
@@ -114,35 +165,37 @@ class VectorGraphicEditor:
     def create_ellipse(self):
         ellipse = EllipseObject(self.canvas, 200, 200, 40, 40, "red")
         self.objects.append(ellipse)
-    """
-    
-    def paint(self, event):
-        if self.selected_object:
-            x, y = event.x, event.y
-            self.selected_object.move(x - self.start_x, y - self.start_y)
-            self.start_x, self.start_y = x, y
-    
-
-    def select_object(self, event):
-        x, y = event.x, event.y
-        item = self.canvas.find_closest(x, y, tags="graphic_object")
-        if item:
-            self.selected_object = self.get_object_by_id(item[0])
-            print("Selected object:", self.selected_object)
-            # Add logic to update property window with object properties
-
-    def get_object_by_id(self, obj_id):
-        for obj in self.objects:
-            if hasattr(obj, "rect_id") and obj.rect_id == obj_id:
-                return obj
-            elif hasattr(obj, "ellipse_id") and obj.ellipse_id == obj_id:
-                return obj
-        return None
-    """
 
     def choose_color(self):
         self.color = colorchooser.askcolor()[1]
-        
+
+    def select_object(self, event=None):
+        self.mode = 'Select'
+        x, y = event.x, event.y
+        self.selected_object = self.find_closest(x, y)
+        self.update_select_object_frame()
+
+    def find_closest(self, x, y):
+        closest_object = None
+        min_distance = float('inf')
+
+        for obj in self.objects:
+            obj_x, obj_y = obj.get_pos()
+            distance = math.sqrt((x - obj_x)**2 + (y - obj_y)**2)
+
+            if distance < min_distance:
+                min_distance = distance
+                closest_object = obj
+
+        return closest_object
+
+
+    def update_mode_label(self):
+        self.mode_label.config(text=f"Mode: {self.mode}")
+
+    def update_select_object_frame(self):
+        self.select_object_frame.config(text=f"Selected Object: \n{self.selected_object.get_obj_id()}")
+
 
 if __name__ == "__main__":
     root = tk.Tk()
