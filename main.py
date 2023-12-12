@@ -30,6 +30,11 @@ class GraphicObject(ABC):
     def get_obj_color(self):
         return getattr(self, 'color', 0)
     
+    def get_obj_center(self):
+        c_x = getattr(self,'x',0) + getattr(self,'width',0)*0.5
+        c_y = getattr(self,'y', 0) + getattr(self,'height',0)*0.5
+        return c_x,c_y
+    
     def set_obj_pos(self, x, y):
         self.x = x
         self.y = y
@@ -101,10 +106,10 @@ class VectorGraphicEditor:
         rectangle_color_button = tk.Button(self.bottom_frame, text="Color", command=self.choose_color)
         rectangle_color_button.pack(side=tk.LEFT)
 
-        select_button = tk.Button(self.bottom_frame, text="Select", command=lambda: self.set_mode("Select"))
+        select_button = tk.Button(self.bottom_frame, text="Select", command=lambda: self.set_mode("select"))
         select_button.pack(side=tk.LEFT)
 
-        multiselect_button = tk.Button(self.bottom_frame, text="Multiselect", command=lambda: self.set_mode("Select"))
+        multiselect_button = tk.Button(self.bottom_frame, text="Multiselect", command=lambda: self.set_mode("multiselect"))
         multiselect_button.pack(side=tk.LEFT)
 
         # Mode label at the bottom-right
@@ -132,6 +137,12 @@ class VectorGraphicEditor:
         self.select_object_pos_frame = tk.Label(self.right_column_frame, text=f"Object Position: \nNone", bd=1, relief=tk.SUNKEN, anchor=tk.W)
         self.select_object_pos_frame.pack(side=tk.TOP, fill=tk.X)
 
+        # Selected object color modifier
+        spacer4 = tk.Frame(self.right_column_frame, height=20, bg='lightgray')
+        spacer4.pack(side=tk.TOP, fill=tk.X)
+        self.color_button = tk.Button(self.right_column_frame, text="Change objects color", command=self.choose_color)
+        self.color_button.pack(side=tk.TOP)
+
         # Create a button that opens the number input window
         spacer4 = tk.Frame(self.right_column_frame, height=20, bg='lightgray')
         spacer4.pack(side=tk.TOP, fill=tk.X)
@@ -155,13 +166,19 @@ class VectorGraphicEditor:
 
         if self.current_object:
             self.canvas.delete(self.current_object)
-
-        self.current_object = self.canvas.create_rectangle(
-            self.start_x, self.start_y, cur_x, cur_y, fill=self.color, outline=self.color
-        )
+        
+        if self.mode == 'rectangle' or self.mode == 'ellipse':
+            self.current_object = self.canvas.create_rectangle(
+                self.start_x, self.start_y, cur_x, cur_y, fill=self.color, outline=self.color
+            )
+        elif self.mode == 'multiselect':
+            self.current_object = self.canvas.create_rectangle(
+                self.start_x, self.start_y, cur_x, cur_y, outline='black',dash=(2, 2)
+            )
 
 
     def draw_object_release(self,event):
+        
         cur_x = self.canvas.canvasx(event.x)
         cur_y = self.canvas.canvasy(event.y)
 
@@ -178,15 +195,18 @@ class VectorGraphicEditor:
         self.start_x = self.canvas.canvasx(event.x)
         self.start_y = self.canvas.canvasy(event.y)
 
-        if self.mode == 'Select':
+        if self.mode == 'select':
             self.select_object(event)
     
     def on_drag(self, event):
-        if self.mode == 'rectangle' or self.mode == 'ellipse':
+        if self.mode == 'rectangle' or self.mode == 'ellipse' or self.mode == 'multiselect':
             self.draw_object_drag(event)
 
     def on_release(self, event):
-        self.draw_object_release(event)
+        if self.mode == 'rectangle' or self.mode == 'ellipse':
+            self.draw_object_release(event)
+        elif self.mode == 'multiselect':
+            self.multiselect_object(event)
 
     def set_mode(self, mode):
         self.mode = mode
@@ -203,8 +223,9 @@ class VectorGraphicEditor:
     def choose_color(self):
         self.color = colorchooser.askcolor()[1]
 
+    ## Select one object
     def select_object(self, event=None):
-        self.mode = 'Select'
+        self.mode = 'select'
         x, y = event.x, event.y
         self.selected_objects = [self.find_closest(x, y)]
         self.update_select_object_frame()
@@ -216,7 +237,7 @@ class VectorGraphicEditor:
         min_distance = float('inf')
 
         for obj in self.objects:
-            obj_x, obj_y = obj.get_obj_pos()
+            obj_x, obj_y = obj.get_obj_center()
             distance = math.sqrt((x - obj_x)**2 + (y - obj_y)**2)
 
             if distance < min_distance:
@@ -224,6 +245,27 @@ class VectorGraphicEditor:
                 closest_object = obj
 
         return closest_object
+    
+
+    ## Multiselect objects
+    def multiselect_object(self, event=None):
+        cur_x, cur_y = event.x, event.y
+        self.selected_objects = []
+        min_x = min(cur_x, self.start_x)
+        max_x = max(cur_x, self.start_x)
+        min_y = min(cur_y, self.start_y)
+        max_y = max(cur_y, self.start_y)
+
+        if self.current_object: # Remove existing boundary box
+            self.canvas.delete(self.current_object)
+
+        for obj in self.objects :
+            obj_x, obj_y = obj.get_obj_center()
+            if obj_x >= min_x and obj_x <= max_x and obj_y >= min_y and obj_y <= max_y :
+                self.selected_objects.append(obj)
+        self.update_select_object_frame()
+        self.update_select_object_color_frame()
+        self.update_select_object_pos_frame()
 
     ## modifying the position of selected object 
     def open_number_input(self):
