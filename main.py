@@ -290,6 +290,8 @@ class VectorGraphicEditor:
         for obj in self.selected_objects:
             obj.set_obj_color(self.color)
 
+        self.draw_by_z_order()
+
     def create_rectangle(self, start_x, start_y, cur_x, cur_y):
         rect = RectangleObject(self.canvas,start_x, start_y, cur_x-start_x, cur_y-start_y, self.color)
         self.objects.append(rect)
