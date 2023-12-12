@@ -7,6 +7,16 @@ from tkinter import messagebox
 
 class GraphicObject(ABC):
     object_count = 0 # Class-level counter for generating unique names
+    
+    def __init__(self, canvas, x, y, width, height, color):
+        self.canvas = canvas
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.color = color
+        self.z = 0 # z-order 
+        self.id = self.generate_obj_id()
 
     @classmethod
     def generate_obj_id(cls):
@@ -15,10 +25,6 @@ class GraphicObject(ABC):
 
     @abstractmethod
     def draw(self):
-        pass
-
-    @abstractmethod
-    def move(self, dx, dy):
         pass
 
     def get_obj_pos(self):
@@ -55,18 +61,10 @@ class GraphicObject(ABC):
 
 
 class RectangleObject(GraphicObject):
-
     def __init__(self, canvas, x, y, width, height, color):
-        self.canvas = canvas
+        super().__init__(canvas,x,y,width,height,color)
         self.type = 'Rectangle'
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-        self.color = color
         self.rect_id = None
-        self.z = 0 # z-order 
-        self.id = self.generate_obj_id()
         self.draw()
 
     def draw(self):
@@ -74,21 +72,31 @@ class RectangleObject(GraphicObject):
             self.canvas.delete(self.rect_id)
         self.rect_id = self.canvas.create_rectangle(self.x, self.y, self.x + self.width, self.y + self.height, fill=self.color, outline=self.color, tags="graphic_object")
 
-    def move(self, dx, dy):
-        self.canvas.move(self.rect_id, dx, dy)
-
 class EllipseObject(GraphicObject):
     def __init__(self, canvas, x, y, width, height, color):
-        self.canvas = canvas
-        self.x = x
-        self.y = y
-        self.ellipse_id = self.canvas.create_oval(x, y, x + width, y + height, fill=color, tags="graphic_object")
+        super().__init__(canvas,x,y,width,height,color)
+        self.type = 'Ellipse'
+        self.rect_id = None
+        self.draw()
 
     def draw(self):
-        pass  # No additional drawing logic for a basic ellipse
+        if self.rect_id is not None:
+            self.canvas.delete(self.rect_id)
+        self.rect_id = self.canvas.create_oval(self.x, self.y, self.x + self.width, self.y + self.height, fill=self.color, outline=self.color, tags="graphic_object")
 
-    def move(self, dx, dy):
-        self.canvas.move(self.ellipse_id, dx, dy)
+class LineObject(GraphicObject):
+    def __init__(self, canvas, x, y, width, height, color):
+        super().__init__(canvas,x,y,width,height,color)
+        self.type = 'Line'
+        self.rect_id = None
+        self.draw()
+
+    def draw(self):
+        if self.rect_id is not None:
+            self.canvas.delete(self.rect_id)
+        self.rect_id = self.canvas.create_line(self.x, self.y, self.x + self.width, self.y + self.height, fill=self.color, width=5, tags="graphic_object")
+
+
 
 class VectorGraphicEditor:
     def __init__(self, root):
@@ -117,6 +125,9 @@ class VectorGraphicEditor:
 
         ellipse_button = tk.Button(self.bottom_frame, text="Ellipse Mode", command=lambda: self.set_mode("ellipse"))
         ellipse_button.pack(side=tk.LEFT)
+
+        line_button = tk.Button(self.bottom_frame, text="Line Mode", command=lambda: self.set_mode("line"))
+        line_button.pack(side=tk.LEFT)
 
         draw_color_button = tk.Button(self.bottom_frame, text="Color", command=self.choose_color)
         draw_color_button.pack(side=tk.LEFT)
@@ -207,10 +218,20 @@ class VectorGraphicEditor:
         if self.current_object:
             self.canvas.delete(self.current_object)
         
-        if self.mode == 'rectangle' or self.mode == 'ellipse':
+        if self.mode == 'rectangle':
             self.current_object = self.canvas.create_rectangle(
                 self.start_x, self.start_y, cur_x, cur_y, fill=self.color, outline=self.color
             )
+        
+        elif self.mode == 'ellipse':
+            self.current_object = self.canvas.create_oval(
+                self.start_x, self.start_y, cur_x, cur_y, fill=self.color, outline=self.color
+            )
+        elif self.mode == 'line':
+            self.current_object = self.canvas.create_line(
+                self.start_x, self.start_y, cur_x, cur_y, fill=self.color, width=5
+            )
+
         elif self.mode == 'multiselect':
             self.current_object = self.canvas.create_rectangle(
                 self.start_x, self.start_y, cur_x, cur_y, outline='black',dash=(2, 2)
@@ -230,6 +251,14 @@ class VectorGraphicEditor:
             self.current_object = self.create_rectangle(
                 self.start_x, self.start_y, cur_x, cur_y
             )
+        elif self.mode == 'ellipse' :
+            self.current_object = self.create_ellipse(
+                self.start_x, self.start_y, cur_x, cur_y
+            )
+        if self.mode == 'line' :
+            self.current_object = self.create_line(
+                self.start_x, self.start_y, cur_x, cur_y
+            )
 
     def on_press(self, event):
         self.start_x = self.canvas.canvasx(event.x)
@@ -239,11 +268,11 @@ class VectorGraphicEditor:
             self.select_object(event)
     
     def on_drag(self, event):
-        if self.mode == 'rectangle' or self.mode == 'ellipse' or self.mode == 'multiselect':
+        if self.mode == 'rectangle' or self.mode == 'ellipse' or self.mode == 'line' or self.mode == 'multiselect':
             self.draw_object_drag(event)
 
     def on_release(self, event):
-        if self.mode == 'rectangle' or self.mode == 'ellipse':
+        if self.mode == 'rectangle' or self.mode == 'ellipse' or self.mode == 'line':
             self.draw_object_release(event)
         elif self.mode == 'multiselect':
             self.multiselect_object(event)
@@ -265,9 +294,13 @@ class VectorGraphicEditor:
         rect = RectangleObject(self.canvas,start_x, start_y, cur_x-start_x, cur_y-start_y, self.color)
         self.objects.append(rect)
 
-    def create_ellipse(self):
-        ellipse = EllipseObject(self.canvas, 200, 200, 40, 40, "red")
+    def create_ellipse(self, start_x, start_y, cur_x, cur_y):
+        ellipse = EllipseObject(self.canvas,start_x, start_y, cur_x-start_x, cur_y-start_y, self.color)
         self.objects.append(ellipse)
+    
+    def create_line(self, start_x, start_y, cur_x, cur_y):
+        line = LineObject(self.canvas,start_x, start_y, cur_x-start_x, cur_y-start_y, self.color)
+        self.objects.append(line)
 
     def choose_color(self):
         self.color = colorchooser.askcolor()[1]
