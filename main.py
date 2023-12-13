@@ -15,6 +15,9 @@ class GraphicObjectFactory() :
             return EllipseObject(canvas, start_x, start_y, cur_x-start_x, cur_y-start_y, color)
         elif obj_type == 'line':
             return LineObject(canvas,start_x, start_y, cur_x-start_x, cur_y-start_y, color)
+        elif obj_type == 'text':
+            return TextObject(canvas,start_x, start_y, text, color)
+
 
 class GraphicObject(ABC):
     object_count = 0 # Class-level counter for generating unique names
@@ -107,6 +110,17 @@ class LineObject(GraphicObject):
             self.canvas.delete(self.rect_id)
         self.rect_id = self.canvas.create_line(self.x, self.y, self.x + self.width, self.y + self.height, fill=self.color, width=5, tags="graphic_object")
 
+class TextObject(GraphicObject):
+    def __init__(self, canvas, x, y, text, color):
+        super().__init__(canvas, x, y, 0, 0, color)  # Width and height are set to 0 initially
+        self.text = text
+        self.text_id = None
+        self.draw()
+
+    def draw(self):
+        if self.text_id is not None:
+            self.canvas.delete(self.text_id)
+        self.text_id = self.canvas.create_text(self.x, self.y, text=self.text, fill=self.color, font=("Arial", 12), tags="graphic_object")
 
 
 class VectorGraphicEditor:
@@ -125,12 +139,17 @@ class VectorGraphicEditor:
         self.selected_objects = []
 
         self.color='black'
+        self.text = ''
 
         # Create a Frame as a container for the bottom buttons
         self.bottom_frame = tk.Frame(root)
         self.bottom_frame.pack(side=tk.BOTTOM, fill=tk.X)
 
         # Mode buttons
+
+        text_button = tk.Button(self.bottom_frame, text="Text Mode", command=lambda: self.set_mode("text"))
+        text_button.pack(side=tk.LEFT)
+
         rectangle_button = tk.Button(self.bottom_frame, text="Rectangle Mode", command=lambda: self.set_mode("rectangle"))
         rectangle_button.pack(side=tk.LEFT)
 
@@ -269,6 +288,10 @@ class VectorGraphicEditor:
 
         if self.mode == 'select':
             self.select_object(event)
+
+        if self.mode == 'text':
+            self.set_text(event)
+        
     
     def on_drag(self, event):
         if self.mode == 'rectangle' or self.mode == 'ellipse' or self.mode == 'line' or self.mode == 'multiselect':
@@ -338,7 +361,23 @@ class VectorGraphicEditor:
                 self.selected_objects.append(obj)
         
         self.update_all_frame()
+    
+    def set_text(self, event):
+        self.modify_mode = 'text'
 
+        # Create a new window for number input
+        input_window = tk.Toplevel(self.root)
+        input_window.title("Input Text")
+
+        # Create a entry field for entering string
+        label1 = tk.Label(input_window, text="Enter the text:")
+        label1.pack()
+        entry1 = tk.Entry(input_window)
+        entry1.pack()
+
+        # Create a button to submit the numbers
+        submit_button = tk.Button(input_window, text="Submit", command=lambda: self.close_on_submit_text(entry1.get(), input_window))
+        submit_button.pack()
 
     ## modifying the size of selected object
     def set_selected_object_size(self):
@@ -423,6 +462,7 @@ class VectorGraphicEditor:
         try:
             num1 = float(num1)
             num2 = float(num2)
+
         except ValueError:
             messagebox.showwarning("", "Invalid Input")
             return False
@@ -437,7 +477,26 @@ class VectorGraphicEditor:
             
             elif self.modify_mode == 'z-order':
                 obj.set_z_order(num1)
+            
 
+        return True
+
+    def close_on_submit_text(self, text, window):
+        if self.get_text(text):
+            if len(text)>0:
+                self.objects.append(
+                    GraphicObjectFactory().create_graphic_object(self.canvas, self.start_x, self.start_y, None, None, self.color, self.mode, text=self.text)
+                )
+
+            window.destroy()
+
+    def get_text(self, text):
+        try:
+            self.text = str(text)
+        except ValueError:
+            messagebox.showwarning("", "Invalid Input")
+            return False
+        
         return True
 
     ## Update View methods
