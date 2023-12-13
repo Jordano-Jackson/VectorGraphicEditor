@@ -5,6 +5,17 @@ from abc import ABC, abstractmethod
 from tkinter import colorchooser
 from tkinter import messagebox
 
+class GraphicObjectFactory() :
+    def create_graphic_object(self, canvas, start_x, start_y, cur_x, cur_y, color, obj_type, text='None'):
+        if obj_type == 'None':
+            pass
+        elif obj_type == 'rectangle':
+            return RectangleObject(canvas, start_x, start_y, cur_x-start_x, cur_y-start_y, color)
+        elif obj_type == 'ellipse':
+            return EllipseObject(canvas, start_x, start_y, cur_x-start_x, cur_y-start_y, color)
+        elif obj_type == 'line':
+            return LineObject(canvas,start_x, start_y, cur_x-start_x, cur_y-start_y, color)
+
 class GraphicObject(ABC):
     object_count = 0 # Class-level counter for generating unique names
     
@@ -247,18 +258,10 @@ class VectorGraphicEditor:
             self.canvas.delete(self.current_object)
         
         # Draw an ellipse, rectangle, or line based on the starting and current points
-        if self.mode == 'rectangle' :
-            self.current_object = self.create_rectangle(
-                self.start_x, self.start_y, cur_x, cur_y
-            )
-        elif self.mode == 'ellipse' :
-            self.current_object = self.create_ellipse(
-                self.start_x, self.start_y, cur_x, cur_y
-            )
-        if self.mode == 'line' :
-            self.current_object = self.create_line(
-                self.start_x, self.start_y, cur_x, cur_y
-            )
+
+        self.objects.append(
+            GraphicObjectFactory().create_graphic_object(self.canvas, self.start_x, self.start_y, cur_x, cur_y, self.color, self.mode)
+        )
 
     def on_press(self, event):
         self.start_x = self.canvas.canvasx(event.x)
@@ -291,18 +294,6 @@ class VectorGraphicEditor:
             obj.set_obj_color(self.color)
 
         self.draw_by_z_order()
-
-    def create_rectangle(self, start_x, start_y, cur_x, cur_y):
-        rect = RectangleObject(self.canvas,start_x, start_y, cur_x-start_x, cur_y-start_y, self.color)
-        self.objects.append(rect)
-
-    def create_ellipse(self, start_x, start_y, cur_x, cur_y):
-        ellipse = EllipseObject(self.canvas,start_x, start_y, cur_x-start_x, cur_y-start_y, self.color)
-        self.objects.append(ellipse)
-    
-    def create_line(self, start_x, start_y, cur_x, cur_y):
-        line = LineObject(self.canvas,start_x, start_y, cur_x-start_x, cur_y-start_y, self.color)
-        self.objects.append(line)
 
     def choose_color(self):
         self.color = colorchooser.askcolor()[1]
