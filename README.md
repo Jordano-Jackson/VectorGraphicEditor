@@ -1,7 +1,18 @@
+
 # VectorGraphicEditor
+<div align="center">
+    <img width="100" alt="image" src="https://github.com/Jordano-Jackson/VectorGraphicEditor/blob/main/icons8-pencil-50.png">
+</div>
 
 ## Description
+<img width="700" alt="image" src="https://github.com/Jordano-Jackson/VectorGraphicEditor/assets/19871043/2fec6202-cb39-44a9-b64a-8a0f84b6205d">
+
+
+
 VectorGraphicEditor is a straightforward vector graphics editor, crafted as a coursework project for COSE457. It's built in Python using Tkinter for the graphical user interface and Pillow for image processing. The editor is a showcase of software design patterns and fundamental graphic manipulation techniques.
+
+* For a demonstration of the VectorGraphicEditor in action, please refer to the demo video located at `assets/demo.mp4`.
+
 
 ## Features
 - **Shape Drawing**: Users can draw basic geometric shapes such as rectangles, ellipses, and lines.
