@@ -1,7 +1,18 @@
+
 # VectorGraphicEditor
+<div align="center">
+    <img width="100" alt="image" src="https://github.com/Jordano-Jackson/VectorGraphicEditor/blob/main/icons8-pencil-50.png">
+</div>
 
 ## Description
+<img width="700" alt="image" src="https://github.com/Jordano-Jackson/VectorGraphicEditor/assets/19871043/2fec6202-cb39-44a9-b64a-8a0f84b6205d">
+
+
+
 VectorGraphicEditor is a straightforward vector graphics editor, crafted as a coursework project for COSE457. It's built in Python using Tkinter for the graphical user interface and Pillow for image processing. The editor is a showcase of software design patterns and fundamental graphic manipulation techniques.
+
+* For a demonstration of the VectorGraphicEditor in action, please refer to the demo video located at `assets/demo.mp4`.
+
 
 ## Features
 - **Shape Drawing**: Users can draw basic geometric shapes such as rectangles, ellipses, and lines.
@@ -13,8 +24,6 @@ VectorGraphicEditor is a straightforward vector graphics editor, crafted as a co
 
 ## Design Patterns
 - **Factory Pattern**: Utilized for creating various types of graphic objects.
-- **Singleton Pattern**: Ensures a single, consistent state across the application.
-- **Command Pattern**: (Planned for future implementation) to allow undo/redo actions.
 
 ## Usage
 
@@ -33,3 +42,12 @@ VectorGraphicEditor is a straightforward vector graphics editor, crafted as a co
 3. **Using the GUI**: The graphical interface is intuitive, allowing users to easily create and edit vector graphics. Utilize the toolset to draw shapes, insert text and images, and modify or multiselect various objects for manipulation.
 
 ## Developers
+<ul>
+   <li>
+      <a href ="https://github.com/SkyDreamer14">Woochan Kim</a>
+   </li>
+   <li>
+      <a href = "https://github.com/Jordano-Jackson">Jihwan Hong</a>
+   </li>
+</ul>
+
