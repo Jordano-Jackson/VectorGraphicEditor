@@ -61,6 +61,10 @@ class GraphicObject(ABC):
         c_y = getattr(self,'y', 0) + getattr(self,'height',0)*0.5
         return c_x,c_y
     
+    def get_obj_z(self):
+        z = getattr(self, 'z', 0)
+        return z
+    
     def set_obj_pos(self, x, y):
         self.x = x
         self.y = y
@@ -263,7 +267,7 @@ class VectorGraphicEditor:
 
     def draw_by_z_order(self):
         # Sorting based on z value
-        sorted_objects = sorted(self.objects, key=lambda obj: obj.z)
+        sorted_objects = sorted(self.objects, key=lambda obj: obj.get_obj_z())
 
         # Printing names in ascending order of z value
         for obj in sorted_objects:
@@ -557,7 +561,7 @@ class VectorGraphicEditor:
         self.select_object_pos_frame.config(text=f"Object Position:\n" + "\n".join([str(obj.get_obj_pos()) for obj in self.selected_objects]))
 
     def update_select_object_z_frame(self):
-        self.select_object_z_frame.config(text=f"Object Z-order:\n" + "\n".join([str(obj.z) for obj in self.selected_objects]))
+        self.select_object_z_frame.config(text=f"Object Z-order:\n" + "\n".join([str(obj.get_obj_z()) for obj in self.selected_objects]))
 
 
 if __name__ == "__main__":
