@@ -4,9 +4,12 @@ import tkinter as tk
 from abc import ABC, abstractmethod
 from tkinter import colorchooser
 from tkinter import messagebox
+from tkinter import PhotoImage
+from tkinter import filedialog
+
 
 class GraphicObjectFactory() :
-    def create_graphic_object(self, canvas, start_x, start_y, cur_x, cur_y, color, obj_type, text='None'):
+    def create_graphic_object(self, canvas, start_x, start_y, cur_x, cur_y, color, obj_type, text='None', image_path=None):
         if obj_type == 'None':
             pass
         elif obj_type == 'rectangle':
@@ -17,6 +20,8 @@ class GraphicObjectFactory() :
             return LineObject(canvas,start_x, start_y, cur_x-start_x, cur_y-start_y, color)
         elif obj_type == 'text':
             return TextObject(canvas,start_x, start_y, text, color)
+        elif obj_type == 'image':
+            return ImageObject(canvas, start_x, start_y, image_path)
 
 
 class GraphicObject(ABC):
@@ -123,6 +128,19 @@ class TextObject(GraphicObject):
         self.text_id = self.canvas.create_text(self.x, self.y, text=self.text, fill=self.color, font=("Arial", 12), tags="graphic_object")
 
 
+class ImageObject(GraphicObject):
+    def __init__(self, canvas, x, y, image_path):
+        super().__init__(canvas, x, y, 0, 0, None)  # Width and height are initially set to 0
+        self.image_path = image_path
+        self.image = PhotoImage(file=image_path)
+        self.image_id = None
+        self.draw()
+
+    def draw(self):
+        if self.image_id is not None:
+            self.canvas.delete(self.image_id)
+        self.image_id = self.canvas.create_image(self.x, self.y, image=self.image, anchor='nw', tags="graphic_object")
+
 class VectorGraphicEditor:
     def __init__(self, root):
         self.root = root
@@ -149,6 +167,9 @@ class VectorGraphicEditor:
 
         text_button = tk.Button(self.bottom_frame, text="Text Mode", command=lambda: self.set_mode("text"))
         text_button.pack(side=tk.LEFT)
+        
+        image_button = tk.Button(self.bottom_frame, text="Insert Image", command=self.insert_image)
+        image_button.pack(side=tk.LEFT)
 
         rectangle_button = tk.Button(self.bottom_frame, text="Rectangle Mode", command=lambda: self.set_mode("rectangle"))
         rectangle_button.pack(side=tk.LEFT)
@@ -290,7 +311,7 @@ class VectorGraphicEditor:
             self.select_object(event)
 
         if self.mode == 'text':
-            self.set_text(event)
+            self.insert_text(event)
         
     
     def on_drag(self, event):
@@ -361,8 +382,8 @@ class VectorGraphicEditor:
                 self.selected_objects.append(obj)
         
         self.update_all_frame()
-    
-    def set_text(self, event):
+
+    def insert_text(self, event):
         self.modify_mode = 'text'
 
         # Create a new window for number input
@@ -378,6 +399,15 @@ class VectorGraphicEditor:
         # Create a button to submit the numbers
         submit_button = tk.Button(input_window, text="Submit", command=lambda: self.close_on_submit_text(entry1.get(), input_window))
         submit_button.pack()
+
+    def insert_image(self):
+        # Ask the user to select an image file
+        image_path = filedialog.askopenfilename(filetypes=[("Image Files", "*.png;*.jpg;*.jpeg;*.gif")])
+        if image_path:
+            self.current_object = GraphicObjectFactory().create_graphic_object(
+                self.canvas, 0, 0, None, None, None, "image", image_path=image_path
+            )
+            self.objects.append(self.current_object)
 
     ## modifying the size of selected object
     def set_selected_object_size(self):
