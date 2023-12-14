@@ -13,8 +13,6 @@ VectorGraphicEditor is a straightforward vector graphics editor, crafted as a co
 
 ## Design Patterns
 - **Factory Pattern**: Utilized for creating various types of graphic objects.
-- **Singleton Pattern**: Ensures a single, consistent state across the application.
-- **Command Pattern**: (Planned for future implementation) to allow undo/redo actions.
 
 ## Usage
 
@@ -33,3 +31,12 @@ VectorGraphicEditor is a straightforward vector graphics editor, crafted as a co
 3. **Using the GUI**: The graphical interface is intuitive, allowing users to easily create and edit vector graphics. Utilize the toolset to draw shapes, insert text and images, and modify or multiselect various objects for manipulation.
 
 ## Developers
+<ul>
+   <li>
+      <a href ="https://github.com/SkyDreamer14">Woochan Kim</a>
+   </li>
+   <li>
+      <a href = "https://github.com/Jordano-Jackson">Jihwan Hong</a>
+   </li>
+</ul>
+
