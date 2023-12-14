@@ -6,6 +6,7 @@ from tkinter import colorchooser
 from tkinter import messagebox
 from tkinter import PhotoImage
 from tkinter import filedialog
+from PIL import Image, ImageTk
 
 
 class GraphicObjectFactory() :
@@ -118,6 +119,7 @@ class LineObject(GraphicObject):
 class TextObject(GraphicObject):
     def __init__(self, canvas, x, y, text, color):
         super().__init__(canvas, x, y, 0, 0, color)  # Width and height are set to 0 initially
+        self.type = 'Text'
         self.text = text
         self.text_id = None
         self.draw()
@@ -130,9 +132,14 @@ class TextObject(GraphicObject):
 
 class ImageObject(GraphicObject):
     def __init__(self, canvas, x, y, image_path):
-        super().__init__(canvas, x, y, 0, 0, None)  # Width and height are initially set to 0
+        self.type = 'Image'
         self.image_path = image_path
-        self.image = PhotoImage(file=image_path)
+        self.pil_image = Image.open(image_path)  # Use Pillow to open the image
+        width, height = self.pil_image.size
+
+        super().__init__(canvas, x, y, width, height, 'black')
+
+        self.image = ImageTk.PhotoImage(self.pil_image)  # Convert to a format Tkinter can use
         self.image_id = None
         self.draw()
 
@@ -402,7 +409,7 @@ class VectorGraphicEditor:
 
     def insert_image(self):
         # Ask the user to select an image file
-        image_path = filedialog.askopenfilename(filetypes=[("Image Files", "*.png;*.jpg;*.jpeg;*.gif")])
+        image_path = filedialog.askopenfilename(initialdir="/", title="Select An Image", filetypes=(("jpeg files", "*.jpg"), ("gif files", "*.gif*"), ("png files", "*.png")))
         if image_path:
             self.current_object = GraphicObjectFactory().create_graphic_object(
                 self.canvas, 0, 0, None, None, None, "image", image_path=image_path
